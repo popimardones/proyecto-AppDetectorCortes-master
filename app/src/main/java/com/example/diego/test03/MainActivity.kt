@@ -8,8 +8,15 @@ import android.graphics.Color
 import android.os.Build
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ListView
+import android.widget.TextView
+import android.widget.BaseAdapter
 import com.google.firebase.database.*
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.row_main.view.*
 
 
 class MainActivity : AppCompatActivity() {
@@ -34,6 +41,14 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, AgregarDispositivoActivity::class.java)
             startActivity(intent)
         }
+
+        val listViewDispositivos = findViewById<ListView>(R.id.listaDispositivos)
+        val pinkLightColor = Color.parseColor("#FCE4EC")
+        listViewDispositivos.setBackgroundColor(pinkLightColor)
+
+        listViewDispositivos.adapter = MyCustomAdapter(this) // this needs to be my custom adapter telling my list what to render
+
+
 
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
@@ -81,5 +96,84 @@ class MainActivity : AppCompatActivity() {
 
 
     }
+
+
+    private class MyCustomAdapter(context: Context): BaseAdapter() {
+
+        private val mContext: Context
+
+        private val nombresDispositivos = arrayListOf<String>(
+                "Cocina","Bodega","Dormitorio 1",
+                "Cocina","Bodega","Dormitorio 1",
+                "Cocina","Bodega","Dormitorio 1"
+
+        )
+
+        private val estadoDispositivos = arrayListOf<String>(
+                "ON","ON","OFF",
+                "ON","ON","OFF",
+                "ON","ON","OFF"
+        )
+
+
+        init {
+            mContext = context
+        }
+
+        // responsible for how many rows in my list
+        override fun getCount(): Int {
+            return nombresDispositivos.size
+        }
+
+        // you can also ignore this
+        override fun getItemId(position: Int): Long {
+            return position.toLong()
+        }
+
+        // you can ignore this for now
+        override fun getItem(position: Int): Any {
+            return "TEST STRING"
+        }
+
+        // responsible for rendering out each row
+        override fun getView(position: Int, convertView: View?, viewGroup: ViewGroup?): View {
+
+            val rowMain: View
+
+            // checking if convertView is null, meaning we have to inflate a new row
+            if (convertView == null) {
+                val layoutInflater = LayoutInflater.from(viewGroup!!.context)
+                rowMain = layoutInflater.inflate(R.layout.row_main, viewGroup, false)
+
+                //Log.v("getView", "calling findViewById which is expensive")
+//                val nTextView = rowMain.name_textView
+//                val pTextView = rowMain.position_textview
+//                val nameTextView = rowMain.findViewById<TextView>(R.id.name_textView)
+//                val positionTextView = rowMain.findViewById<TextView>(R.id.position_textview)
+                val viewHolder = ViewHolder(rowMain.NombreDisptextView, rowMain.EstadoDispTextView)
+                rowMain.tag = viewHolder
+
+            } else {
+                // well, we have our row as convertView, so just set rowMain as that view
+                rowMain = convertView
+            }
+
+            val viewHolder = rowMain.tag as ViewHolder
+
+            viewHolder.nombreDispositivoTextView.text = nombresDispositivos.get(position)
+            viewHolder.estadoDispositivoTextView.text = estadoDispositivos.get(position)
+
+            return rowMain
+
+        }
+
+        private class ViewHolder(val nombreDispositivoTextView: TextView, val estadoDispositivoTextView: TextView)
+
+
+
+    }
+
+
+
 
 }
