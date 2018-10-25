@@ -14,27 +14,39 @@ import android.view.ViewGroup
 import android.widget.ListView
 import android.widget.TextView
 import android.widget.BaseAdapter
-import com.google.firebase.database.*
+import com.example.diego.test03.DataModel.Dispositivo
+import com.google.firebase.database.ChildEventListener
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.row_main.view.*
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DataSnapshot
+import android.widget.ArrayAdapter
+
 
 
 class MainActivity : AppCompatActivity() {
 
-    var database = FirebaseDatabase.getInstance()
-    var myRef = database.reference
 
-
-    lateinit var notificationManager : NotificationManager
-    lateinit var notificationChannel : NotificationChannel
-    lateinit var builder : Notification.Builder
+    lateinit var notificationManager: NotificationManager
+    lateinit var notificationChannel: NotificationChannel
+    lateinit var builder: Notification.Builder
     private val channelId = "com.example.diego.test03"
-    private val description =  "Test Notification"
+    private val description = "Test Notification"
+
+
+//    lateinit var listViewDispositivos: ListView
 
     //metodo que se ejecuta al iniciar la aplicacion
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        val listViewDispositivos = findViewById<ListView>(R.id.listaDispositivos)
+        val pinkLightColor = Color.parseColor("#FCE4EC")
+        listViewDispositivos.setBackgroundColor(pinkLightColor)
+        listViewDispositivos.adapter = MyCustomAdapter(this) // this needs to be my custom adapter telling my list what to render
+
 
         //Para abrir AgregarDispositivoActivity
         btnAD.setOnClickListener {
@@ -42,23 +54,18 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        val listViewDispositivos = findViewById<ListView>(R.id.listaDispositivos)
-        val pinkLightColor = Color.parseColor("#FCE4EC")
-        listViewDispositivos.setBackgroundColor(pinkLightColor)
-
-        listViewDispositivos.adapter = MyCustomAdapter(this) // this needs to be my custom adapter telling my list what to render
-
+        //val ref = FirebaseDatabase.getInstance().getReference("Dispositivos")
+//        var myArrayAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, nombresList)
 
 
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
         btn_notify.setOnClickListener {
             //on click of the notification, we need to launch the application
             val intent = Intent(this, LauncherActivity::class.java)
             val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                notificationChannel = NotificationChannel(channelId,description,NotificationManager.IMPORTANCE_HIGH)
+                notificationChannel = NotificationChannel(channelId, description, NotificationManager.IMPORTANCE_HIGH)
                 notificationChannel.enableLights(true)
                 notificationChannel.lightColor = Color.GREEN
                 notificationChannel.enableVibration(false)
@@ -69,52 +76,46 @@ class MainActivity : AppCompatActivity() {
                 builder = Notification.Builder(this, channelId)
                         .setContentTitle("Casa Segura")
                         .setContentText("Ha ocurrido un corte de energia")
-                        .setLargeIcon(BitmapFactory.decodeResource(this.resources,R.drawable.ic_launcher))
+                        .setLargeIcon(BitmapFactory.decodeResource(this.resources, R.drawable.ic_launcher))
                         .setSmallIcon(R.drawable.ic_launcher_round)
                         //.setSmallIcon(R.drawable.notification_template_icon_bg)
                         .setContentIntent(pendingIntent)
 
 
-            }else{
+            } else {
 
                 builder = Notification.Builder(this)
                         .setContentTitle("Casa Segura")
                         .setContentText("Ha ocurrido un corte de energia")
-                        .setLargeIcon(BitmapFactory.decodeResource(this.resources,R.drawable.ic_launcher))
+                        .setLargeIcon(BitmapFactory.decodeResource(this.resources, R.drawable.ic_launcher))
                         .setSmallIcon(R.drawable.ic_launcher_round)
                         //.setSmallIcon(R.drawable.notification_template_icon_bg)
                         .setContentIntent(pendingIntent)
             }
 
 
-
             //use unique id for each notification
-            notificationManager.notify(1234,builder.build())
+            notificationManager.notify(1234, builder.build())
 
         }
-
 
 
     }
 
 
-    private class MyCustomAdapter(context: Context): BaseAdapter() {
+    private class MyCustomAdapter(context: Context) : BaseAdapter() {
+
 
         private val mContext: Context
 
         private val nombresDispositivos = arrayListOf<String>(
-                "Cocina","Bodega","Dormitorio 1",
-                "Cocina","Bodega","Dormitorio 1",
-                "Cocina","Bodega","Dormitorio 1"
 
+                "Cocina", "Pieza 1", "Bodega"
         )
 
         private val estadoDispositivos = arrayListOf<String>(
-                "ON","ON","OFF",
-                "ON","ON","OFF",
-                "ON","ON","OFF"
+                "ON", "OFF", "ON"
         )
-
 
         init {
             mContext = context
@@ -170,10 +171,11 @@ class MainActivity : AppCompatActivity() {
         private class ViewHolder(val nombreDispositivoTextView: TextView, val estadoDispositivoTextView: TextView)
 
 
-
     }
 
 
-
-
 }
+
+
+
+
